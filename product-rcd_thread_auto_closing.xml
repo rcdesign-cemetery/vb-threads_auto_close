@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <product productid="rcd_thread_auto_closing" active="1">
-	<title>Thread auto closing</title>
+	<title>Threads Auto Close</title>
 	<description />
 	<version>0.2</version>
 	<url />
@@ -21,9 +21,9 @@
 			<title>Deny write in the old threads</title>
 			<hookname>newreply_start</hookname>
 			<phpcode><![CDATA[$tac_timeline = TIMENOW - (int)$vbulletin->options['tac_time_line'] * 60*60*24;
-if($threadinfo['lastpost'] < $tac_timeline) 
+if ((1 == $threadinfo['open']) AND $threadinfo['lastpost'] < $tac_timeline)
 {
-    if (!( 1 == $threadinfo['sticky'] && !$vbulletin->options['tac_can_stickie_closed']))
+    if ( (1 != $threadinfo['sticky']) OR $vbulletin->options['tac_can_stickie_closed'])
     {
         $threadinfo['open'] = 0;
     }
@@ -34,9 +34,9 @@ unset($tac_timeline);]]></phpcode>
 			<title>Mark old thread in view thread</title>
 			<hookname>showthread_getinfo</hookname>
 			<phpcode><![CDATA[$tac_timeline = TIMENOW - (int)$vbulletin->options['tac_time_line'] * 60*60*24;
-if($threadinfo['lastpost'] < $tac_timeline) 
+if ((1 == $threadinfo['open']) AND $threadinfo['lastpost'] < $tac_timeline)
 {
-    if (!( 1 == $threadinfo['sticky'] && !$vbulletin->options['tac_can_stickie_closed']))
+    if ( (1 != $threadinfo['sticky']) OR $vbulletin->options['tac_can_stickie_closed'])
     {
         $threadinfo['open'] = 0;
     }
@@ -47,9 +47,9 @@ unset($tac_timeline);]]></phpcode>
 			<title>Mark old threads in forum display page</title>
 			<hookname>threadbit_process</hookname>
 			<phpcode><![CDATA[$tac_timeline = TIMENOW - (int)$vbulletin->options['tac_time_line'] * 60*60*24;
-if($thread['lastpost'] < $tac_timeline)
+if ((1 == $thread['open']) AND $thread['lastpost'] < $tac_timeline)
 {
-    if (!( 1 == $thread['sticky'] && !$vbulletin->options['tac_can_stickie_closed']))
+    if ( (1 != $thread['sticky']) OR $vbulletin->options['tac_can_stickie_closed'])
     {
         $thread['status']['lock'] = 'lock';
         $thread['checkbox_value'] += THREAD_FLAG_CLOSED;
@@ -60,9 +60,9 @@ unset($tac_timeline);]]></phpcode>
 	</plugins>
 	<phrases>
 		<phrasetype name="vBulletin Settings" fieldname="vbsettings">
-			<phrase name="setting_tac_can_stickie_closed_desc" date="1273645355" username="varnak" version="0.1"><![CDATA[Should be closed stickied threads or not]]></phrase>
+			<phrase name="setting_tac_can_stickie_closed_desc" date="1274099237" username="Vitaly" version=""><![CDATA[Set 'Yes', if you need to close sticky threads too.]]></phrase>
 			<phrase name="setting_tac_can_stickie_closed_title" date="1273645355" username="varnak" version="0.1"><![CDATA[Close sticky threads]]></phrase>
-			<phrase name="setting_tac_time_line_desc" date="1273645081" username="varnak" version="0.1"><![CDATA[Time (in days) after which the thread will be closed]]></phrase>
+			<phrase name="setting_tac_time_line_desc" date="1274099338" username="Vitaly" version=""><![CDATA[Inactivity period (in days) to close threads.]]></phrase>
 			<phrase name="setting_tac_time_line_title" date="1273645081" username="varnak" version="0.1"><![CDATA[Thread time line]]></phrase>
 			<phrase name="settinggroup_rcd_thread_auto_closing" date="1273637541" username="varnak" version="0.1"><![CDATA[Thread auto closing]]></phrase>
 		</phrasetype>
@@ -86,4 +86,6 @@ unset($tac_timeline);]]></phpcode>
 	</cronentries>
 	<faqentries>
 	</faqentries>
+	<templateedits>
+	</templateedits>
 </product>
