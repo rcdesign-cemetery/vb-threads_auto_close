@@ -3,7 +3,7 @@
 <product productid="rcd_thread_auto_closing" active="1">
 	<title>Thread auto closing</title>
 	<description />
-	<version>0.1</version>
+	<version>0.2</version>
 	<url />
 	<versioncheckurl />
 	<dependencies>
@@ -18,23 +18,42 @@
 	</stylevars>
 	<plugins>
 		<plugin active="1" executionorder="5">
-			<title>Close old thread</title>
-			<hookname>cron_script_cleanup_daily</hookname>
+			<title>Deny write in the old threads</title>
+			<hookname>newreply_start</hookname>
 			<phpcode><![CDATA[$tac_timeline = TIMENOW - (int)$vbulletin->options['tac_time_line'] * 60*60*24;
-if ($tac_timeline > 0)
+if($threadinfo['lastpost'] < $tac_timeline) 
 {
-    $sql = 'UPDATE
-                ' . TABLE_PREFIX . 'thread
-			SET
-                open = 0
-            WHERE
-                lastpost < ' . $tac_timeline .
-                ' AND open = 1 ';
-    if (! $vbulletin->options['tac_can_stickie_closed'])
+    if (!( 1 == $threadinfo['sticky'] && !$vbulletin->options['tac_can_stickie_closed']))
     {
-        $sql .= ' AND sticky = 0 ';
+        $threadinfo['open'] = 0;
     }
-    $vbulletin->db->query_write($sql);
+}
+unset($tac_timeline);]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Mark old thread in view thread</title>
+			<hookname>showthread_getinfo</hookname>
+			<phpcode><![CDATA[$tac_timeline = TIMENOW - (int)$vbulletin->options['tac_time_line'] * 60*60*24;
+if($threadinfo['lastpost'] < $tac_timeline) 
+{
+    if (!( 1 == $threadinfo['sticky'] && !$vbulletin->options['tac_can_stickie_closed']))
+    {
+        $threadinfo['open'] = 0;
+    }
+}
+unset($tac_timeline);]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Mark old threads in forum display page</title>
+			<hookname>threadbit_process</hookname>
+			<phpcode><![CDATA[$tac_timeline = TIMENOW - (int)$vbulletin->options['tac_time_line'] * 60*60*24;
+if($thread['lastpost'] < $tac_timeline)
+{
+    if (!( 1 == $thread['sticky'] && !$vbulletin->options['tac_can_stickie_closed']))
+    {
+        $thread['status']['lock'] = 'lock';
+        $thread['checkbox_value'] += THREAD_FLAG_CLOSED;
+    }
 }
 unset($tac_timeline);]]></phpcode>
 		</plugin>
@@ -67,6 +86,4 @@ unset($tac_timeline);]]></phpcode>
 	</cronentries>
 	<faqentries>
 	</faqentries>
-	<templateedits>
-	</templateedits>
 </product>
