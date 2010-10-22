@@ -3,14 +3,14 @@
 <product productid="rcd_thread_auto_closing" active="1">
 	<title>Threads Auto Close</title>
 	<description />
-	<version>0.2</version>
+	<version>0.3</version>
 	<url><![CDATA[http://www.vbulletin.org/forum/misc.php?do=producthelp&pid=rcd_thread_auto_closing]]></url>
 	<versioncheckurl><![CDATA[http://www.vbulletin.org/forum/misc.php?do=productcheck&pid=rcd_thread_auto_closing]]></versioncheckurl>
-	<apm_releasedate></apm_releasedate>
-	<apm_author></apm_author>
-	<apm_relatedurl></apm_relatedurl>
-	<apm_extrainfo></apm_extrainfo>
-	<apm_extraedit></apm_extraedit>
+	<apm_releasedate>0</apm_releasedate>
+	<apm_author />
+	<apm_relatedurl />
+	<apm_extrainfo />
+	<apm_extraedit />
 	<dependencies>
 	</dependencies>
 	<codes>
@@ -28,12 +28,33 @@
 			<phpcode><![CDATA[$tac_timeline = TIMENOW - (int)$vbulletin->options['tac_time_line'] * 60*60*24;
 if ((1 == $threadinfo['open']) AND $threadinfo['lastpost'] < $tac_timeline)
 {
-    if ( (1 != $threadinfo['sticky']) OR $vbulletin->options['tac_can_stickie_closed'])
+    if ((1 != $threadinfo['sticky']) OR $vbulletin->options['tac_can_stickie_closed'])
     {
-        $threadinfo['open'] = 0;
+        $tac_forum_list[] = $foruminfo['forumid'];
+
+        if ($vbulletin->options['tac_with_children'])
+        {
+            $tac_forum_list = array_merge($tac_forum_list, explode(',', $foruminfo['parentlist']));    
+        }
+        
+        if ($vbulletin->options['tac_forum_ids'])
+        {
+            if (array_intersect(explode(',', $vbulletin->options['tac_forum_ids']), $tac_forum_list))
+            {
+                $threadinfo['open'] = 0;   
+            }   
+        }
+        else 
+        {
+            if (!array_intersect(explode(',', $vbulletin->options['tac_excl_forum_ids']), $tac_forum_list))
+            {
+                $threadinfo['open'] = 0;     
+            }
+        }
+        
     }
-}
-unset($tac_timeline);]]></phpcode>
+    unset($tac_timeline);        
+}]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
 			<title>Mark old thread in view thread</title>
@@ -41,12 +62,33 @@ unset($tac_timeline);]]></phpcode>
 			<phpcode><![CDATA[$tac_timeline = TIMENOW - (int)$vbulletin->options['tac_time_line'] * 60*60*24;
 if ((1 == $threadinfo['open']) AND $threadinfo['lastpost'] < $tac_timeline)
 {
-    if ( (1 != $threadinfo['sticky']) OR $vbulletin->options['tac_can_stickie_closed'])
+    if ((1 != $threadinfo['sticky']) OR $vbulletin->options['tac_can_stickie_closed'])
     {
-        $threadinfo['open'] = 0;
+        $tac_forum_list[] = $foruminfo['forumid'];
+
+        if ($vbulletin->options['tac_with_children'])
+        {
+            $tac_forum_list = array_merge($tac_forum_list, explode(',', $foruminfo['parentlist']));    
+        }
+        
+        if ($vbulletin->options['tac_forum_ids'])
+        {
+            if (array_intersect(explode(',', $vbulletin->options['tac_forum_ids']), $tac_forum_list))
+            {
+                $threadinfo['open'] = 0;   
+            }   
+        }
+        else 
+        {
+            if (!array_intersect(explode(',', $vbulletin->options['tac_excl_forum_ids']), $tac_forum_list))
+            {
+                $threadinfo['open'] = 0;     
+            }
+        }
+        
     }
-}
-unset($tac_timeline);]]></phpcode>
+    unset($tac_timeline);        
+}]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
 			<title>Mark old threads in forum display page</title>
@@ -54,21 +96,51 @@ unset($tac_timeline);]]></phpcode>
 			<phpcode><![CDATA[$tac_timeline = TIMENOW - (int)$vbulletin->options['tac_time_line'] * 60*60*24;
 if ((1 == $thread['open']) AND $thread['lastpost'] < $tac_timeline)
 {
-    if ( (1 != $thread['sticky']) OR $vbulletin->options['tac_can_stickie_closed'])
+    if ((1 != $thread['sticky']) OR $vbulletin->options['tac_can_stickie_closed'])
     {
-        $thread['status']['lock'] = 'lock';
-        $thread['checkbox_value'] += THREAD_FLAG_CLOSED;
+        global $foruminfo;
+        $tac_forum_list[] = $foruminfo['forumid'];
+
+        if ($vbulletin->options['tac_with_children'])
+        {
+            $tac_forum_list = array_merge($tac_forum_list, explode(',', $foruminfo['parentlist']));    
+        }
+        
+        if ($vbulletin->options['tac_forum_ids'])
+        {
+            if (array_intersect(explode(',', $vbulletin->options['tac_forum_ids']), $tac_forum_list))
+            {
+                $thread['status']['lock'] = 'lock';
+                $thread['checkbox_value'] += THREAD_FLAG_CLOSED;   
+            }   
+        }
+        else 
+        {
+            if (!array_intersect(explode(',', $vbulletin->options['tac_excl_forum_ids']), $tac_forum_list))
+            {
+                $thread['status']['lock'] = 'lock';
+                $thread['checkbox_value'] += THREAD_FLAG_CLOSED;     
+            }
+        }
+        
     }
-}
-unset($tac_timeline);]]></phpcode>
+    unset($tac_timeline);        
+}]]></phpcode>
 		</plugin>
 	</plugins>
 	<phrases>
 		<phrasetype name="vBulletin Settings" fieldname="vbsettings">
-			<phrase name="setting_tac_can_stickie_closed_desc" date="1274971481" username="Vitaly" version="0.2"><![CDATA[Set 'Yes', if you need to close sticky threads too.]]></phrase>
-			<phrase name="setting_tac_can_stickie_closed_title" date="1274971481" username="Vitaly" version="0.2"><![CDATA[Close sticky threads]]></phrase>
-			<phrase name="setting_tac_time_line_desc" date="1274971481" username="Vitaly" version="0.2"><![CDATA[Inactivity period (in days) to close threads.]]></phrase>
-			<phrase name="setting_tac_time_line_title" date="1274971481" username="Vitaly" version="0.2"><![CDATA[Thread time line]]></phrase>
+			<phrase name="setting_tac_can_stickie_closed_desc" date="1287744007" username="Vitaly" version="0.3"><![CDATA[Set 'Yes', if you need to close sticky threads too]]></phrase>
+			<phrase name="setting_tac_can_stickie_closed_title" date="1287744007" username="Vitaly" version="0.3"><![CDATA[Close sticky threads]]></phrase>
+			<phrase name="setting_tac_excl_forum_ids_desc" date="1287743884" username="Vitaly" version="0.3"><![CDATA[Forum IDs to disable mod (comma separated, no spaces)]]></phrase>
+			<phrase name="setting_tac_excl_forum_ids_title" date="1287743884" username="Vitaly" version="0.3"><![CDATA[Disabled Forums]]></phrase>
+			<phrase name="setting_tac_forum_ids_desc" date="1287743998" username="Vitaly" version="0.3"><![CDATA[Forum IDs to enable mod (comma separated, no spaces)<br>
+Leave empty to enable everywhere]]></phrase>
+			<phrase name="setting_tac_forum_ids_title" date="1287743998" username="Vitaly" version="0.3"><![CDATA[Enabled Forums]]></phrase>
+			<phrase name="setting_tac_time_line_desc" date="1287744014" username="Vitaly" version="0.3"><![CDATA[Inactivity period (in days) to close threads]]></phrase>
+			<phrase name="setting_tac_time_line_title" date="1287744014" username="Vitaly" version="0.3"><![CDATA[Thread time line]]></phrase>
+			<phrase name="setting_tac_with_children_desc" date="1287743968" username="Vitaly" version="0.3"><![CDATA[Set YES to enable/disable with subforums]]></phrase>
+			<phrase name="setting_tac_with_children_title" date="1287743968" username="Vitaly" version="0.3"><![CDATA[With subforums]]></phrase>
 			<phrase name="settinggroup_rcd_thread_auto_closing" date="1274971527" username="Vitaly" version=""><![CDATA[Threads Auto Close]]></phrase>
 		</phrasetype>
 	</phrases>
@@ -82,6 +154,17 @@ unset($tac_timeline);]]></phpcode>
 				<datatype>boolean</datatype>
 				<optioncode>yesno</optioncode>
 				<defaultvalue>0</defaultvalue>
+			</setting>
+			<setting varname="tac_forum_ids" displayorder="30">
+				<datatype>free</datatype>
+			</setting>
+			<setting varname="tac_excl_forum_ids" displayorder="50">
+				<datatype>free</datatype>
+			</setting>
+			<setting varname="tac_with_children" displayorder="60">
+				<datatype>boolean</datatype>
+				<optioncode>yesno</optioncode>
+				<defaultvalue>1</defaultvalue>
 			</setting>
 		</settinggroup>
 	</options>
